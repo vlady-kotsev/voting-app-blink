@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/voting.json`.
  */
 export type Voting = {
-  "address": "AsjZ3kWAUSQRNt2pZVeJkywhZ6gpLpHZmJjduPmKZDZZ",
+  "address": "MpF1jqM46dUA1xaMVaxaghCDguKipKxo3prbMmDy7ir",
   "metadata": {
     "name": "voting",
     "version": "0.1.0",
@@ -14,150 +14,228 @@ export type Voting = {
   },
   "instructions": [
     {
-      "name": "close",
+      "name": "initCandidate",
       "discriminator": [
-        98,
-        165,
-        201,
-        177,
-        108,
-        65,
-        206,
-        96
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "voting",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "decrement",
-      "discriminator": [
-        106,
+        35,
+        246,
         227,
-        168,
-        59,
-        248,
-        27,
-        150,
-        101
+        54,
+        218,
+        228,
+        156,
+        143
       ],
       "accounts": [
-        {
-          "name": "voting",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "increment",
-      "discriminator": [
-        11,
-        18,
-        104,
-        9,
-        104,
-        174,
-        59,
-        33
-      ],
-      "accounts": [
-        {
-          "name": "voting",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "voting",
-          "writable": true,
-          "signer": true
-        },
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "set",
-      "discriminator": [
-        198,
-        51,
-        53,
-        241,
-        116,
-        29,
-        126,
-        194
-      ],
-      "accounts": [
+        },
         {
-          "name": "voting",
-          "writable": true
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "candidate",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "pollId"
+              },
+              {
+                "kind": "arg",
+                "path": "candidateId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "pollId"
+              }
+            ]
+          }
         }
       ],
       "args": [
         {
-          "name": "value",
-          "type": "u8"
+          "name": "pollId",
+          "type": "u64"
+        },
+        {
+          "name": "candidateId",
+          "type": "u64"
+        },
+        {
+          "name": "candidateName",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initPoll",
+      "discriminator": [
+        125,
+        33,
+        167,
+        77,
+        242,
+        214,
+        203,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "pollId"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "pollId",
+          "type": "u64"
+        },
+        {
+          "name": "pollQuestion",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "vote",
+      "discriminator": [
+        227,
+        110,
+        155,
+        23,
+        136,
+        126,
+        172,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "candidate",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "pollId"
+              },
+              {
+                "kind": "arg",
+                "path": "candidateId"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "pollId",
+          "type": "u64"
+        },
+        {
+          "name": "candidateId",
+          "type": "u64"
         }
       ]
     }
   ],
   "accounts": [
     {
-      "name": "voting",
+      "name": "candidate",
       "discriminator": [
-        255,
-        176,
-        4,
-        245,
+        86,
+        69,
+        250,
+        96,
+        193,
+        10,
+        222,
+        123
+      ]
+    },
+    {
+      "name": "poll",
+      "discriminator": [
+        110,
+        234,
+        167,
         188,
-        253,
-        124,
-        25
+        231,
+        136,
+        153,
+        111
       ]
     }
   ],
   "types": [
     {
-      "name": "voting",
+      "name": "candidate",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "count",
-            "type": "u8"
+            "name": "candidateId",
+            "type": "u64"
+          },
+          {
+            "name": "candidateName",
+            "type": "string"
+          },
+          {
+            "name": "votes",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pollId",
+            "type": "u64"
+          },
+          {
+            "name": "pollQuestion",
+            "type": "string"
+          },
+          {
+            "name": "candidateCount",
+            "type": "u64"
           }
         ]
       }

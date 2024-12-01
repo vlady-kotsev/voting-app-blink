@@ -1,76 +1,98 @@
-import * as anchor from '@coral-xyz/anchor'
-import {Program} from '@coral-xyz/anchor'
-import {Keypair} from '@solana/web3.js'
-import {Voting} from '../target/types/voting'
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { Voting } from "../target/types/voting";
+import { BankrunProvider, startAnchor } from "anchor-bankrun";
+import exp from "constants";
+const IDL = require("../target/idl/voting.json");
+const PROGRAM_ID = new PublicKey("MpF1jqM46dUA1xaMVaxaghCDguKipKxo3prbMmDy7ir");
 
-describe('voting', () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
-  const payer = provider.wallet as anchor.Wallet
+describe("voting", () => {
+  // anchor.setProvider(anchor.AnchorProvider.env());
+  // let votingProgram: anchor.Program<Voting> = anchor.workspace
+  //   .Voting as Program<Voting>;
+  let votingProgram: Program<Voting>;
+  beforeAll(async () => {
+    const context = await startAnchor(
+      "",
+      [
+        {
+          name: "voting",
+          programId: PROGRAM_ID,
+        },
+      ],
+      []
+    );
+    const provider = new BankrunProvider(context);
+    votingProgram = new Program<Voting>(IDL, provider);
+  });
 
-  const program = anchor.workspace.Voting as Program<Voting>
+  it("Initialize Voting", async () => {
+    await votingProgram.methods
+      .initPoll(new anchor.BN(1), "Favorite team?")
+      .rpc();
 
-  const votingKeypair = Keypair.generate()
+    const [pollAddress] = PublicKey.findProgramAddressSync(
+      [new anchor.BN(1).toArrayLike(Buffer, "le", 8)],
+      PROGRAM_ID
+    );
 
-  it('Initialize Voting', async () => {
-    await program.methods
-      .initialize()
-      .accounts({
-        voting: votingKeypair.publicKey,
-        payer: payer.publicKey,
-      })
-      .signers([votingKeypair])
-      .rpc()
+    const poll = await votingProgram.account.poll.fetch(pollAddress);
 
-    const currentCount = await program.account.voting.fetch(votingKeypair.publicKey)
+    expect(Number(poll.pollId)).toBe(1);
+    expect(poll.pollQuestion).toBe("Favorite team?");
+    expect(Number(poll.candidateCount)).toBe(0);
+  });
 
-    expect(currentCount.count).toEqual(0)
-  })
+  it("Initialize Candidate", async () => {
+    await votingProgram.methods
+      .initCandidate(new anchor.BN(1), new anchor.BN(1), "Levski")
+      .rpc();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await votingProgram.methods
+      .initCandidate(new anchor.BN(1), new anchor.BN(2), "CSKA")
+      .rpc();
 
-  it('Increment Voting', async () => {
-    await program.methods.increment().accounts({ voting: votingKeypair.publicKey }).rpc()
+    const [candidateAddress] = PublicKey.findProgramAddressSync(
+      [
+        new anchor.BN(1).toArrayLike(Buffer, "le", 8),
+        new anchor.BN(1).toArrayLike(Buffer, "le", 8),
+      ],
+      PROGRAM_ID
+    );
 
-    const currentCount = await program.account.voting.fetch(votingKeypair.publicKey)
+    const candidate = await votingProgram.account.candidate.fetch(
+      candidateAddress
+    );
 
-    expect(currentCount.count).toEqual(1)
-  })
+    expect(Number(candidate.candidateId)).toBe(1);
+    expect(candidate.candidateName).toBe("Levski");
+    expect(Number(candidate.votes)).toBe(0);
 
-  it('Increment Voting Again', async () => {
-    await program.methods.increment().accounts({ voting: votingKeypair.publicKey }).rpc()
+    const [pollAddress] = PublicKey.findProgramAddressSync(
+      [new anchor.BN(1).toArrayLike(Buffer, "le", 8)],
+      PROGRAM_ID
+    );
 
-    const currentCount = await program.account.voting.fetch(votingKeypair.publicKey)
+    const poll = await votingProgram.account.poll.fetch(pollAddress);
+    expect(poll.candidateCount.toNumber()).toBe(1);
+  });
 
-    expect(currentCount.count).toEqual(2)
-  })
+  it("Test voting", async () => {
+    // await votingProgram.methods.vote(new anchor.BN(1), new anchor.BN(1)).rpc();
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await votingProgram.methods.vote(new anchor.BN(1), new anchor.BN(1)).rpc();
 
-  it('Decrement Voting', async () => {
-    await program.methods.decrement().accounts({ voting: votingKeypair.publicKey }).rpc()
+    const [candidatePDA] = PublicKey.findProgramAddressSync(
+      [
+        new anchor.BN(1).toArrayLike(Buffer, "le", 8),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      PROGRAM_ID
+    );
 
-    const currentCount = await program.account.voting.fetch(votingKeypair.publicKey)
+    const candidate = await votingProgram.account.candidate.fetch(candidatePDA);
 
-    expect(currentCount.count).toEqual(1)
-  })
-
-  it('Set voting value', async () => {
-    await program.methods.set(42).accounts({ voting: votingKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.voting.fetch(votingKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(42)
-  })
-
-  it('Set close the voting account', async () => {
-    await program.methods
-      .close()
-      .accounts({
-        payer: payer.publicKey,
-        voting: votingKeypair.publicKey,
-      })
-      .rpc()
-
-    // The account should no longer exist, returning null.
-    const userAccount = await program.account.voting.fetchNullable(votingKeypair.publicKey)
-    expect(userAccount).toBeNull()
-  })
-})
+    expect(candidate.votes.toNumber()).toBe(2);
+  });
+});
