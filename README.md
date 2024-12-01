@@ -1,94 +1,79 @@
-# voting
+# Solana Voting System
 
-## Getting Started
+A decentralized voting system built on Solana blockchain that allows users to vote for their favorite team using Solana Actions and Blinks.
 
-### Prerequisites
+## Features
 
-- Node v18.18.0 or higher
+- Decentralized voting system using Solana blockchain
+- Vote for teams (Levski vs CSKA)
+- Integration with Phantom Wallet
+- Uses Solana Actions and Blinks for seamless transaction experience
+- Built with Anchor framework
 
-- Rust v1.77.2 or higher
-- Anchor CLI 0.30.1 or higher
-- Solana CLI 1.18.17 or higher
+## Tech Stack
 
-### Installation
+- Solana Blockchain
+- Anchor Framework
+- Next.js
+- TypeScript
+- Phantom Wallet
+- Solana Actions & Blinks
 
-#### Clone the repo
+## Prerequisites
 
-```shell
-git clone <repo-url>
-cd <repo-name>
+- Node.js 14+ and npm
+- Rust and Cargo
+- Solana CLI tools
+- Anchor CLI
+- Phantom Wallet browser extension
+
+## Installation
+
+1. Clone the repository
+2. Install dependencies
+
+```bash
+git clone <your-repo-url>
+cd <repo-folder>
+npm install
+cd anchor
+anchor build
 ```
 
-#### Install Dependencies
+3. Start local Solana cluster
 
-```shell
-pnpm install
+```bash
+solana-test-validator
 ```
 
-#### Start the web app
+4. Deploy the program to the local cluster
 
-```
-pnpm dev
-```
-
-## Apps
-
-### anchor
-
-This is a Solana program written in Rust using the Anchor framework.
-
-#### Commands
-
-You can use any normal anchor commands. Either move to the `anchor` directory and run the `anchor` command or prefix the command with `pnpm`, eg: `pnpm anchor`.
-
-#### Sync the program id:
-
-Running this command will create a new keypair in the `anchor/target/deploy` directory and save the address to the Anchor config file and update the `declare_id!` macro in the `./src/lib.rs` file of the program.
-
-You will manually need to update the constant in `anchor/lib/counter-exports.ts` to match the new program id.
-
-```shell
-pnpm anchor keys sync
+```bash
+anchor deploy --provider.cluster localhost
 ```
 
-#### Build the program:
+5. Initialize the voting system (run tests)
 
-```shell
-pnpm anchor-build
+```bash
+anchor test --provider.cluster localhost
 ```
 
-#### Start the test validator with the program deployed:
+6. Start the Next.js development server
 
-```shell
-pnpm anchor-localnet
+```bash
+npm run dev
 ```
 
-#### Run the tests
+7. Set Phantom wallet to use the local cluster and fund account with:
 
-```shell
-pnpm anchor-test
+```bash
+solana airdrop <your-account-pubkey> --url http://localhost:8899
 ```
 
-#### Deploy to Devnet
+8. Open [Blink test environment](https://dial.to/?action=solana-action:http://localhost:3000/api/vote) in Browser to interact with voting program via _Blink_
 
-```shell
-pnpm anchor deploy --provider.cluster devnet
-```
+- The transaction can be checked in the local cluster logs:
 
-### web
-
-This is a React app that uses the Anchor generated client to interact with the Solana program.
-
-#### Commands
-
-Start the web app
-
-```shell
-pnpm dev
-```
-
-Build the web app
-
-```shell
-pnpm build
+```bash
+solana logs --url localhost
 ```
